@@ -8,10 +8,9 @@ This is a machine learning web application that detects whether a given text was
 ---
 
 ## 🚀 Features
-- Upload and analyze `.pdf`, `.docx`, or typed/pasted text
+- You can Upload a file and the system will analyze `.pdf`, `.docx`, or typed/pasted text
 - Select from three pre-trained models
 - Get prediction and confidence score
-- Real-time feedback via a Streamlit app
 
 
 

@@ -10,19 +10,19 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import RegexpTokenizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# Ensure NLTK stopwords data is available
+# Ensure the presence of NLTK stopwords 
 try:
     nltk.data.find('corpora/stopwords')
 except LookupError:
     nltk.download('stopwords')
 
-# Ensure NLTK wordnet data is available
+# Ensure the presence of NLTK wordnet 
 try:
     nltk.data.find('corpora/wordnet')
 except LookupError:
     nltk.download('wordnet')
 
-# ------------------------- Utility Functions -------------------------
+# Utility Functions
 
 def preprocess_text(text):
     stop_words = set(stopwords.words('english'))
@@ -57,25 +57,52 @@ def load_model_and_vectorizer(model_name):
     vectorizer = joblib.load(vectorizer_path)
     return model, vectorizer
 
-# ------------------------- Streamlit UI -------------------------
+# Streamlit UI 
 
 st.set_page_config(page_title="AI vs Human Text Detector", layout="wide")
 st.title("🧠 AI vs Human Text Detector")
+
+# Welcome Message for the users
+st.markdown("""
+<div style='
+    background-color: #6f42c1;
+    color: white;
+    padding: 1.2rem;
+    border-radius: 0.5rem;
+    border-left: 6px solid #3b237a;
+    margin-bottom: 1.5rem;
+    font-size: 1.05rem;
+'>
+    👋 <strong>Welcome!</strong> Paste your content or upload a document to find out if it was written by a human or an AI.  
+    Choose your preferred model from the sidebar, then hit <em>Detect Author</em> to get your result!
+</div>
+""", unsafe_allow_html=True)
+
 st.markdown("""
 Upload a **PDF**, **Word Document**, or **paste your own text** to check whether it was written by a human or AI.  
 Choose from three trained models: **SVM**, **Decision Tree**, and **AdaBoost**.
 """)
 
-# Sidebar - select model
-model_choice = st.sidebar.selectbox("Choose a model", ["SVM", "Decision Tree", "AdaBoost"])
+# select model needed model
+with st.sidebar:
+    st.header("⚙️ Model Selection")
+    model_choice = st.selectbox("Choose a model", ["SVM", "Decision Tree", "AdaBoost"])
+    st.markdown("ℹ️ You can switch between models to compare results.")
+
 model, vectorizer = load_model_and_vectorizer(model_choice)
 
-# Upload or paste text
-uploaded_file = st.file_uploader("Upload PDF or DOCX", type=["pdf", "docx"])
-text_input = st.text_area("Or paste your text here")
+# Upload and text input section
+col1, col2 = st.columns(2)
 
-# Predict
-if st.button("Detect Author"):
+with col1:
+    uploaded_file = st.file_uploader("📄 Upload PDF or Word Document", type=["pdf", "docx"])
+
+with col2:
+    with st.expander("📋 Or paste text manually"):
+        text_input = st.text_area("Enter your text here", height=250)
+
+# Control of the predict section
+if st.button("🚀 Detect Author"):
     if uploaded_file or text_input:
         raw_text = extract_text_from_file(uploaded_file) if uploaded_file else text_input
         cleaned_text = preprocess_text(raw_text)
@@ -84,8 +111,32 @@ if st.button("Detect Author"):
         
         label = "🧑 Human" if prediction == 1 else "🤖 AI"
         confidence = np.max(proba) * 100
-        
-        st.subheader(f"Prediction: {label}")
-        st.write(f"Confidence: {confidence:.2f}%")
+
+        # Styling of the result box
+        st.markdown(f"""
+            <div style='
+                padding: 1.2rem;
+                background-color: #6f42c1;
+                color: white;
+                border-radius: 0.5rem;
+                border-left: 5px solid #3b237a;
+                font-size: 1.1rem;'>
+                <strong>Prediction:</strong> {label}  
+                <br><strong>Confidence:</strong> {confidence:.2f}%
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.progress(int(confidence))
     else:
         st.warning("Please upload a file or paste some text to analyze.")
+
+# Here  is the Footer
+
+st.markdown("""<hr style="margin-top: 3rem; margin-bottom: 1rem;">""", unsafe_allow_html=True)
+
+st.markdown("""
+<div style='text-align: center; font-size: 0.9rem; color: gray;'>
+    Made with ❤️ using <strong>Streamlit</strong>  
+    <br>© 2025 AI vs Human Text Detector
+</div>
+""", unsafe_allow_html=True)
